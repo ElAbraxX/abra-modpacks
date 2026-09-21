@@ -1,1 +1,6 @@
-{"name":"PandArmy Packs","intro":"Tu próxima partida empieza aquí.","color":"#b6ef55","background":"#101311"}
+{
+  "name": "PandArmy Packs",
+  "intro": "Tu próxima partida empieza aquí.",
+  "color": "#a85c05",
+  "background": "#101311"
+}
