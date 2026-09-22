@@ -57,7 +57,9 @@ export function packsFromReleases(releases,env) {
 }
 async function catalog(req,env,ctx) {
   const cache=globalThis.caches?.default;
-  const cacheKey=new Request(new URL('/api/catalog',req.url));
+  const cacheUrl=new URL('/api/catalog',req.url);
+  cacheUrl.searchParams.set('repository',env.GITHUB_OWNER+'/'+env.GITHUB_REPO);
+  const cacheKey=new Request(cacheUrl);
   const cached=await cache?.match(cacheKey);
   if(cached)return cached;
   // The catalog shows the latest 100 releases; the UI links to the full archive.
