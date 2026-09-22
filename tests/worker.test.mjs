@@ -1,6 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import worker,{seal,unseal,packsFromReleases,validateTheme} from '../worker.mjs';
+import worker,{seal,unseal,packsFromReleases,validateTheme,releasePresentation} from '../worker.mjs';
+test('cover supports GitHub markdown and HTML without rendering arbitrary HTML',()=>{
+ assert.deepEqual(releasePresentation('Mi pack\n![Portada](https://github.com/user-attachments/assets/example)'),{image:'https://github.com/user-attachments/assets/example',description:'Mi pack'});
+ assert.equal(releasePresentation('<img width="500" src="https://example.org/cover.png" />').image,'https://example.org/cover.png');
+ assert.equal(releasePresentation('<img src="javascript:alert(1)">').image,null);
+ assert.equal(releasePresentation('<img src="https://user:password@example.org/a">').image,null);
+ assert.equal(releasePresentation('Sin imagen').image,null);
+ assert.equal(releasePresentation('![a](https://example.org/a.png) ![b](https://example.org/b.png)').image,'https://example.org/a.png');
+});
 const env={GITHUB_OWNER:'ElAbraxX',GITHUB_REPO:'abra-modpacks',ADMIN_LOGIN:'ElAbraxX',SESSION_SECRET:'a-strong-test-only-secret-at-least-32-characters',GITHUB_CLIENT_ID:'test-client',GITHUB_CLIENT_SECRET:'test-secret'};
 const ctx={waitUntil(){}};
 const asset={id:1,name:'Aventura.zip',size:1024**3,state:'uploaded',browser_download_url:'https://github.com/ElAbraxX/abra-modpacks/releases/download/v1/Aventura.zip'};

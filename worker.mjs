@@ -38,12 +38,21 @@ async function github(path,token,options={}) {
   if(!response.ok)throw new HttpError(response.status===401?401:502,response.status===401?'Tu sesión de GitHub ha caducado. Vuelve a entrar.':'GitHub no está disponible o ha alcanzado su límite temporal. Inténtalo más tarde.');
   return response.json();
 }
+export function releasePresentation(body) {
+  let image=null;
+  const description=String(body||'').replace(/!\[[^\]]*\]\(\s*(https:\/\/[^\s)]+)(?:\s+"[^"]*")?\s*\)|<img\b[^>]*>/gi,(match,markdownUrl)=>{
+    const htmlUrl=match.match(/\bsrc\s*=\s*["']([^"']+)["']/i)?.[1];
+    try{const url=new URL(markdownUrl||htmlUrl);if(url.protocol==='https:'&&!url.username&&!url.password){image??=url.href;return '';}}catch{}
+    return match;
+  }).trim().slice(0,2000);
+  return {image,description};
+}
 export function packsFromReleases(releases,env) {
   if(!Array.isArray(releases))throw new HttpError(502,'Respuesta inesperada de GitHub.');
   const prefix=`https://github.com/${env.GITHUB_OWNER}/${env.GITHUB_REPO}/releases/download/`;
   return releases.filter(r=>!r.draft&&!r.prerelease).flatMap(r=>(r.assets||[]).filter(a=>
     /\.(mrpack|zip)$/i.test(a.name) && a.size>0 && a.size<=MAX_PACK && a.state==='uploaded' && a.browser_download_url?.startsWith(prefix)
-  ).map(a=>({id:a.id,name:r.name||r.tag_name,description:(r.body||'').slice(0,2000),file:a.name,size:a.size,url:a.browser_download_url,
+  ).map(a=>({id:a.id,name:r.name||r.tag_name,...releasePresentation(r.body),file:a.name,size:a.size,url:a.browser_download_url,
     format:a.name.toLowerCase().endsWith('.mrpack')?'modrinth':'zip',release:`https://github.com/${env.GITHUB_OWNER}/${env.GITHUB_REPO}/releases/tag/${encodeURIComponent(r.tag_name)}`})));
 }
 async function catalog(req,env,ctx) {
@@ -119,6 +128,6 @@ export default {async fetch(req,env,ctx) {
   try{response=await route(req,env,ctx);}catch(error){response=json({error:error instanceof HttpError?error.message:'No se pudo completar la operación. Inténtalo de nuevo.'},error.status||500);}
   const safe=new Response(response.body,response);
   safe.headers.set('X-Content-Type-Options','nosniff');safe.headers.set('Referrer-Policy','no-referrer');
-  safe.headers.set('Content-Security-Policy',"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'");
+  safe.headers.set('Content-Security-Policy',"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'");
   return safe;
 }};

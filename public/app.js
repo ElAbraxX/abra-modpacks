@@ -8,6 +8,15 @@ function view(name){if(!['packs','install','admin'].includes(name)||name==='admi
 document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>{location.hash=b.dataset.view;view(b.dataset.view);}));window.addEventListener('hashchange',()=>view(location.hash.slice(1)));
 function element(tag,text,className){const e=document.createElement(tag);if(text)e.textContent=text;if(className)e.className=className;return e;}
 function link(text,url,className){const a=element('a',text,className);a.href=url;return a;}
+function packCover(pack){
+  const cover=element('div','◇','cover');
+  if(pack.image){
+    const img=document.createElement('img');img.alt='Portada de '+pack.name;img.loading='lazy';img.decoding='async';img.referrerPolicy='no-referrer';
+    img.addEventListener('error',()=>{cover.textContent='◇';},{once:true});
+    img.src=pack.image;cover.replaceChildren(img);
+  }
+  return cover;
+}
 function launcherLinks(body,pack){
   const launchers=pack.format==='modrinth'?[['Modrinth App','https://modrinth.com/app'],['Prism Launcher','https://prismlauncher.org/download/']]:[['Prism Launcher','https://prismlauncher.org/download/']];
   for(const [name,url] of launchers){
@@ -30,7 +39,7 @@ async function load(){
       if(!packs.some(p=>(p.format==='modrinth'?'modrinth':'zip')===format))continue;
       const section=element('section');section.append(element('h2',title),element('p',description,'muted'));groups[format]=element('div',null,'cards');section.append(groups[format]);$('cards').append(section);
     }
-    for(const p of packs){const card=element('article',null,'card'),body=element('div',null,'card-body');card.append(element('div','◇','cover'));body.append(element('span',p.format==='modrinth'?'MODRINTH · .MRPACK':'CURSEFORGE · .ZIP','eyebrow'),element('h3',p.name),element('p',p.description||'Listo para tu próxima partida.'),element('small',`${(p.size/1024/1024).toFixed(1)} MB · ${p.file}`),link(p.format==='modrinth'?'Descargar .mrpack ↓':'Descargar ZIP de CurseForge ↓',p.url,'primary'));if(p.format==='modrinth'){body.append(link('Instalador Windows','/Abra-Instalador.exe','outline'));}else{const a=link('Instalar con CurseForge ↗','https://www.curseforge.com/download/app','outline');a.target='_blank';a.rel='noopener noreferrer';body.append(a);}launcherLinks(body,p);const source=link('Ver publicación ↗',p.release,'text-link');source.target='_blank';source.rel='noopener noreferrer';body.append(source);card.append(body);groups[p.format==='modrinth'?'modrinth':'zip'].append(card);}
+    for(const p of packs){const card=element('article',null,'card'),body=element('div',null,'card-body');card.append(packCover(p));body.append(element('span',p.format==='modrinth'?'MODRINTH · .MRPACK':'CURSEFORGE · .ZIP','eyebrow'),element('h3',p.name),element('p',p.description||'Listo para tu próxima partida.'),element('small',`${(p.size/1024/1024).toFixed(1)} MB · ${p.file}`),link(p.format==='modrinth'?'Descargar .mrpack ↓':'Descargar ZIP de CurseForge ↓',p.url,'primary'));if(p.format==='modrinth'){body.append(link('Instalador Windows','/Abra-Instalador.exe','outline'));}else{const a=link('Instalar con CurseForge ↗','https://www.curseforge.com/download/app','outline');a.target='_blank';a.rel='noopener noreferrer';body.append(a);}launcherLinks(body,p);const source=link('Ver publicación ↗',p.release,'text-link');source.target='_blank';source.rel='noopener noreferrer';body.append(source);card.append(body);groups[p.format==='modrinth'?'modrinth':'zip'].append(card);}
   }else{message('error',results[2].reason.message+' Puedes usar el enlace «Ver todas las publicaciones en GitHub».');}
   $('loading').hidden=true;view(location.hash.slice(1));
   if(new URLSearchParams(location.search).get('login')==='denied')message('error','Esa cuenta puede descargar, pero no administrar esta página. Entra con la cuenta del propietario.');
