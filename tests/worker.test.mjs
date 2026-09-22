@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import worker,{seal,unseal,packsFromReleases,validateTheme} from '../worker.mjs';
-const env={GITHUB_OWNER:'wil71490-png',GITHUB_REPO:'abra-modpacks',ADMIN_LOGIN:'wil71490-png',SESSION_SECRET:'a-strong-test-only-secret-at-least-32-characters',GITHUB_CLIENT_ID:'test-client',GITHUB_CLIENT_SECRET:'test-secret'};
+const env={GITHUB_OWNER:'ElAbraxX',GITHUB_REPO:'abra-modpacks',ADMIN_LOGIN:'ElAbraxX',SESSION_SECRET:'a-strong-test-only-secret-at-least-32-characters',GITHUB_CLIENT_ID:'test-client',GITHUB_CLIENT_SECRET:'test-secret'};
 const ctx={waitUntil(){}};
-const asset={id:1,name:'Aventura.zip',size:1024**3,state:'uploaded',browser_download_url:'https://github.com/wil71490-png/abra-modpacks/releases/download/v1/Aventura.zip'};
+const asset={id:1,name:'Aventura.zip',size:1024**3,state:'uploaded',browser_download_url:'https://github.com/ElAbraxX/abra-modpacks/releases/download/v1/Aventura.zip'};
 test('public catalog accepts 1 GiB and excludes drafts, executables, oversize and foreign links',()=>{
  const releases=[{name:'Mi aventura',tag_name:'v1',assets:[asset,{...asset,size:1024**3+1},{...asset,name:'bad.exe'},{...asset,browser_download_url:'https://evil.example/Aventura.zip'}]},{draft:true,assets:[asset]},{prerelease:true,assets:[asset]}];
  const packs=packsFromReleases(releases,env);assert.equal(packs.length,1);assert.equal(packs[0].name,'Mi aventura');
@@ -34,9 +34,9 @@ test('theme validation rejects injection and empty names',()=>{
 });
 test('owner theme write validates GitHub identity, preserves file SHA and Unicode',async()=>{
  const original=globalThis.fetch,calls=[];
- globalThis.fetch=async(url,options)=>{calls.push({url,options});if(url.endsWith('/user'))return Response.json({id:42,login:'wil71490-png'});if(options.method==='PUT')return Response.json({});return Response.json({sha:'existing-sha'});};
+ globalThis.fetch=async(url,options)=>{calls.push({url,options});if(url.endsWith('/user'))return Response.json({id:42,login:'ElAbraxX'});if(options.method==='PUT')return Response.json({});return Response.json({sha:'existing-sha'});};
  try{
- const session=await seal({kind:'session',login:'wil71490-png',id:42,token:'owner-token',exp:Date.now()+60000},env);
+ const session=await seal({kind:'session',login:'ElAbraxX',id:42,token:'owner-token',exp:Date.now()+60000},env);
  const r=await worker.fetch(new Request('https://example.test/api/admin/theme',{method:'PUT',headers:{Origin:'https://example.test',Cookie:'__Host-abra_session='+session},body:JSON.stringify({name:'Aventura á 🌲',intro:'Hola',color:'#b6ef55',background:'#101311'})}),env,ctx);
  assert.equal(r.status,200);const written=JSON.parse(calls.at(-1).options.body);assert.equal(written.sha,'existing-sha');assert.match(Buffer.from(written.content,'base64').toString('utf8'),/Aventura á 🌲/);assert.equal(calls.at(-1).options.headers.Authorization,'Bearer owner-token');
  }finally{globalThis.fetch=original;}
