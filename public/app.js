@@ -17,6 +17,33 @@ function packCover(pack){
   }
   return cover;
 }
+let launcherGuideId=0;
+function alternativeLauncherGuide(body,pack){
+  const button=element('button','Launcher no premium','outline');button.type='button';
+  const guide=element('div');guide.id='launcher-guide-'+(++launcherGuideId);guide.hidden=true;
+  button.setAttribute('aria-controls',guide.id);button.setAttribute('aria-expanded','false');
+  button.addEventListener('click',()=>{guide.hidden=!guide.hidden;button.setAttribute('aria-expanded',String(!guide.hidden));});
+  guide.append(element('p','Elige tu launcher. Estas instrucciones preparan los mods; el acceso al servidor depende de las cuentas que acepte.','muted'));
+  const format=pack.format==='modrinth'?'.mrpack':'ZIP de CurseForge';
+  const sections=[
+    ['SKlauncher',[
+      'Descarga el '+format+' de esta tarjeta.',
+      'En el gestor de instalaciones busca la opción de importar un modpack. Si tu versión admite este formato, selecciona el archivo descargado y espera a que termine.',
+      'Si no aparece la opción o rechaza el archivo, usa el método manual de abajo. No basta con cambiar la extensión del archivo.',
+      'Abre la instalación del pack y comprueba que Minecraft y el cargador coincidan con los indicados en la publicación.'
+    ]],
+    ['TLauncher y otros · método manual',[
+      'Primero prepara el pack completo: importa el '+format+' en '+(pack.format==='modrinth'?'Modrinth App o Prism':'CurseForge App o Prism')+' y espera a que descargue los mods. Abre la carpeta de esa instancia.',
+      'En tu launcher crea una instalación separada con la misma versión de Minecraft y del cargador (Forge, NeoForge, Fabric o Quilt). Si no admite ese cargador, usa otro compatible.',
+      'Abre la carpeta de juego de esa instalación y cierra el juego. Copia desde el pack preparado las carpetas mods, config y las demás carpetas de contenido que incluya, como resourcepacks, shaderpacks, scripts o kubejs. No mezcles mods de otros packs.',
+      'Selecciona esa instalación para jugar. Si tu launcher permite elegir el directorio del juego, asegúrate de que apunta a la carpeta donde copiaste el pack.'
+    ]]
+  ];
+  for(const [title,steps] of sections){guide.append(element('h4',title));const list=element('ol');for(const step of steps)list.append(element('li',step));guide.append(list);}
+  guide.append(element('p','No pongas el '+format+' directamente en mods: puede contener una lista de descargas y no todos los archivos. El instalador Abra sigue siendo solo para .mrpack y el launcher oficial.','muted'));
+  for(const [title,url] of [['Ayuda oficial de SKlauncher','https://docs.skmedix.pl/4.0/'],['Guía de mods de TLauncher','https://tlauncher.org/en/install-mods.html']]){const a=link(title+' ↗',url,'text-link');a.target='_blank';a.rel='noopener noreferrer';guide.append(a);}
+  body.append(button,guide);
+}
 function launcherLinks(body,pack){
   const launchers=pack.format==='modrinth'?[['Modrinth App','https://modrinth.com/app'],['Prism Launcher','https://prismlauncher.org/download/']]:[['Prism Launcher','https://prismlauncher.org/download/']];
   for(const [name,url] of launchers){
@@ -26,6 +53,7 @@ function launcherLinks(body,pack){
   const help=link('Cómo instalar este formato','#install','text-link');
   help.addEventListener('click',()=>{view('install');document.getElementById(pack.format==='modrinth'?'guide-mrpack':'guide-curseforge').scrollIntoView({behavior:'smooth'});});
   body.append(help);
+  alternativeLauncherGuide(body,pack);
 }
 async function load(){
   const results=await Promise.allSettled([request('/site-config.json'),request('/api/session'),request('/api/catalog')]);
