@@ -62,10 +62,22 @@ async function catalog(req,env,ctx) {
   const cacheKey=new Request(cacheUrl);
   const cached=await cache?.match(cacheKey);
   if(cached)return cached;
+  const backupUrl=new URL(cacheUrl);backupUrl.searchParams.set('backup','1');
+  const backupKey=new Request(backupUrl);
   // The catalog shows the latest 100 releases; the UI links to the full archive.
-  const releases=await github(repoPath(env)+'/releases?per_page=100');
+  let releases;
+  try{releases=await github(repoPath(env)+'/releases?per_page=100',env.GITHUB_READ_TOKEN);}
+  catch(error){
+    const backup=await cache?.match(backupKey);
+    if(!backup)throw error;
+    const data=await backup.json();
+    return json({...data,stale:true,notice:'Mostrando el último catálogo disponible. GitHub no responde temporalmente.'});
+  }
   const response=Response.json({packs:packsFromReleases(releases,env),releasesUrl:`https://github.com/${env.GITHUB_OWNER}/${env.GITHUB_REPO}/releases`},{headers:{'Cache-Control':'public, max-age=600'}});
-  if(cache)ctx.waitUntil(cache.put(cacheKey,response.clone()));
+  if(cache){
+    const backup=new Response(response.clone().body,response);backup.headers.set('Cache-Control','public, max-age=604800');
+    ctx.waitUntil(Promise.all([cache.put(cacheKey,response.clone()),cache.put(backupKey,backup)]));
+  }
   return response;
 }
 export function validateTheme(value) {

@@ -60,6 +60,7 @@ async function load(){
   if(results[0].status==='fulfilled'){const theme=results[0].value;applyTheme(theme);for(const field of ['name','intro','color','background'])$('theme-form').elements[field].value=theme[field];}
   if(results[1].status==='fulfilled'){const session=results[1].value;admin=session.admin;$('admin-tab').hidden=$('logout').hidden=!admin;$('login').hidden=admin;$('identity').textContent=admin?'Sesión de administrador: '+session.login:'';if(!session.configured){$('login').addEventListener('click',e=>{e.preventDefault();message('notice','La colección es pública. Falta completar la configuración de GitHub en Cloudflare para activar la administración.');});}}
   if(results[2].status==='fulfilled'){
+    if(results[2].value.stale)message('notice',results[2].value.notice);
     const packs=results[2].value.packs;$('empty').hidden=packs.length>0;
     const groups={};
     $('cards').className='';
