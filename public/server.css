@@ -1,0 +1,5 @@
+.server-banner{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:18px;padding:22px 26px;margin:0 0 28px;border:1px solid var(--brand);border-radius:12px;background:color-mix(in srgb,var(--brand) 8%,var(--page))}
+.server-banner .eyebrow{display:block;margin-bottom:8px}
+.server-address{font-size:clamp(20px,4vw,30px);font-weight:750;letter-spacing:.3px;user-select:all;overflow-wrap:anywhere}
+.server-banner p{margin:8px 0 0;font-size:13px}
+.server-copy-status{flex-basis:100%;margin:0!important}
