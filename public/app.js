@@ -39,8 +39,17 @@ function alternativeLauncherGuide(body,pack){
       'Selecciona esa instalación para jugar. Si tu launcher permite elegir el directorio del juego, asegúrate de que apunta a la carpeta donde copiaste el pack.'
     ]]
   ];
+  if(pack.format==='modrinth'){
+    sections.unshift(['Instalador Abra · Windows',[
+      'Método probado por el administrador con un launcher no premium. La selección de la carpeta y del perfil puede variar según tu launcher.',
+      'Descarga el .mrpack de esta tarjeta y el Instalador Windows. Abre el instalador, elige el .mrpack y pulsa Instalar.',
+      'Espera a que termine y anota la carpeta de destino que muestra. El pack se guarda en una subcarpeta de %APPDATA%\\.minecraft\\abra-packs.',
+      'Abre tu launcher y selecciona el perfil del pack si aparece. Si no aparece, crea una instalación con la misma versión de Minecraft y del cargador del pack, y configura su directorio de juego con la carpeta de destino completa que mostró el instalador.',
+      'No selecciones solo .minecraft ni abra-packs: selecciona la subcarpeta de ese pack. Inicia el juego y comprueba que carga los mods. Si tu launcher no permite elegir esa carpeta o ese cargador, utiliza una de las otras guías.'
+    ]]);
+  }
   for(const [title,steps] of sections){guide.append(element('h4',title));const list=element('ol');for(const step of steps)list.append(element('li',step));guide.append(list);}
-  guide.append(element('p','No pongas el '+format+' directamente en mods: puede contener una lista de descargas y no todos los archivos. El instalador Abra sigue siendo solo para .mrpack y el launcher oficial.','muted'));
+  guide.append(element('p','No pongas el '+format+' directamente en mods: puede contener una lista de descargas y no todos los archivos. El instalador Abra solo admite .mrpack; para ZIP de CurseForge utiliza las guías de importación.','muted'));
   for(const [title,url] of [['Ayuda oficial de SKlauncher','https://docs.skmedix.pl/4.0/'],['Guía de mods de TLauncher','https://tlauncher.org/en/install-mods.html']]){const a=link(title+' ↗',url,'text-link');a.target='_blank';a.rel='noopener noreferrer';guide.append(a);}
   body.append(button,guide);
 }
